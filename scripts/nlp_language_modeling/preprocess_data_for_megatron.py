@@ -183,6 +183,7 @@ class Encoder(object):
                 if self.args.apply_ftfy:
                     text = ftfy.fix_text(text)
                 doc_ids = []
+                # We are using identity splitter for CNN dailymail for now.
                 for sentence in Encoder.splitter.tokenize(text):
                     sentence_ids = Encoder.tokenizer.text_to_ids(sentence)
                     if len(sentence_ids) > 0:
@@ -353,7 +354,7 @@ def main():
     print(f"DEBUGGG")
 
     encoder.initializer()
-    with open("/raid/data/mlperf-llm/cnn-dailymail/cnn_eval.json", 'r') as fh:
+    with open("/home/mlperf_inference_data/data/cnn-daily-mail/cnn_eval.json", 'r') as fh:
         tokenized_inputs = encoder.encode_cnn(fh)
 
     dataset_len = len(tokenized_inputs)
@@ -367,9 +368,13 @@ def main():
         max_len = min(2048, len(tokenized_inputs[0][0]))
         input_token_padded[i][:max_len] = tokenized_inputs[0][0][:max_len]
 
-    np.save('./cnn-dailymail-spm-token-padded.npy',input_token_padded)
 
-    print(input_token_padded.shape)
+    # Test id to text
+    # text = encoder.tokenizer.ids_to_text(input_token_padded[0])
+    # print(f"Detokenized text: {text}")
+
+    np.save('./cnn-dailymail-spm-token-padded.npy',input_token_padded)
+    print(f"Shape of input token npy: {input_token_padded.shape}")
     exit(0)
 
     pool = multiprocessing.Pool(args.workers, initializer=encoder.initializer)
