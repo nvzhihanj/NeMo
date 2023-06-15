@@ -104,6 +104,13 @@ try:
 except ImportError:
     nltk_available = False
 
+G_PROMPT_INPUT = (
+    "Below is an instruction that describes a task, paired with an input that provides further context. "
+    "Write a response that appropriately completes the request.\n\n"
+    "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
+)
+
+
 # https://stackoverflow.com/questions/33139531/preserve-empty-lines-with-nltks-punkt-tokenizer
 class CustomLanguageVars(nltk.tokenize.punkt.PunktLanguageVars):
 
@@ -163,6 +170,29 @@ class Encoder(object):
 
         else:
             Encoder.splitter = IdentitySplitter()
+
+    def encode_cnn(self, json_line):
+        if not self.args.text_file:
+            list_data_dict = json.load(json_line)
+            sources = [G_PROMPT_INPUT.format_map(example) for example in list_data_dict]
+            targets = [f"{example['output']}" for example in list_data_dict]
+            tok_input = []
+            ids = []
+            cnt = 0
+            for text in sources:
+                if self.args.apply_ftfy:
+                    text = ftfy.fix_text(text)
+                doc_ids = []
+                for sentence in Encoder.splitter.tokenize(text):
+                    sentence_ids = Encoder.tokenizer.text_to_ids(sentence)
+                    if len(sentence_ids) > 0:
+                        doc_ids.append(sentence_ids)
+                if len(doc_ids) > 0 and self.args.append_eod:
+                    doc_ids[-1].append(Encoder.tokenizer.eos_id)
+                ids.append(doc_ids)
+                cnt += 1
+
+        return ids
 
     def encode(self, json_line):
         if not self.args.text_file:
@@ -319,6 +349,28 @@ def main():
     proc_start = time.time()
     total_bytes_processed = 0
     print("Time to startup:", startup_end - startup_start)
+
+    print(f"DEBUGGG")
+
+    encoder.initializer()
+    with open("/raid/data/mlperf-llm/cnn-dailymail/cnn_eval.json", 'r') as fh:
+        tokenized_inputs = encoder.encode_cnn(fh)
+
+    dataset_len = len(tokenized_inputs)
+    print(f"Tokenize a total of {len(tokenized_inputs)} of inputs")
+    print(f"len: {len(tokenized_inputs[0][0])}")
+    import numpy as np
+
+    input_token_padded = np.ones((dataset_len, 2048), dtype=np.int32) * encoder.tokenizer.pad_id
+    
+    for i in range(dataset_len):
+        max_len = min(2048, len(tokenized_inputs[0][0]))
+        input_token_padded[i][:max_len] = tokenized_inputs[0][0][:max_len]
+
+    np.save('./cnn-dailymail-spm-token-padded.npy',input_token_padded)
+
+    print(input_token_padded.shape)
+    exit(0)
 
     pool = multiprocessing.Pool(args.workers, initializer=encoder.initializer)
 
