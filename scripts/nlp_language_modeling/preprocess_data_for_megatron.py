@@ -110,6 +110,9 @@ G_PROMPT_INPUT = (
     "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
 )
 
+G_PROMPT_INPUT_GPT175B = (
+    "summarize: {input}"
+)
 
 # https://stackoverflow.com/questions/33139531/preserve-empty-lines-with-nltks-punkt-tokenizer
 class CustomLanguageVars(nltk.tokenize.punkt.PunktLanguageVars):
@@ -174,7 +177,7 @@ class Encoder(object):
     def encode_cnn(self, json_line):
         if not self.args.text_file:
             list_data_dict = json.load(json_line)
-            sources = [G_PROMPT_INPUT.format_map(example) for example in list_data_dict]
+            sources = [G_PROMPT_INPUT_GPT175B.format_map(example) for example in list_data_dict]
             targets = [f"{example['output']}" for example in list_data_dict]
             tok_input = []
             ids = []
