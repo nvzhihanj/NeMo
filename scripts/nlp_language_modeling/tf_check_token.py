@@ -4,6 +4,7 @@ import tensorflow as tf
 
 saved_unprocessed_dataset_filename = "gs://cnn_dailymail_public/mlperf/cnn_dailymail/preprocess/cnn_dailymail-test.tfrecord-00000-of-00001"
 saved_processed_dataset_filename = "gs://cnn_dailymail_public/mlperf/cnn_dailymail/seqio_cache_tasks/cnn_dailymail_3.0.0/cnn_dailymail-test.tfrecord-00000-of-00001"
+saved_processed_dataset_filename = "gs://cnn_dailymail_public/mlperf/cnn_dailymail/seqio_cache_tasks/cnn_dailymail_3.0.0/cnn_dailymail-validation.tfrecord-00000-of-00001"
 saved_processed_dataset_filenames = [saved_processed_dataset_filename]
 saved_processed_dataset = tf.data.TFRecordDataset(saved_processed_dataset_filenames)
 

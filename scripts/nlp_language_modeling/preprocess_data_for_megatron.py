@@ -368,8 +368,8 @@ def main():
     input_token_padded = np.ones((dataset_len, 2048), dtype=np.int32) * encoder.tokenizer.pad_id
     
     for i in range(dataset_len):
-        max_len = min(2048, len(tokenized_inputs[0][0]))
-        input_token_padded[i][:max_len] = tokenized_inputs[0][0][:max_len]
+        max_len = min(2048, len(tokenized_inputs[i][0]))
+        input_token_padded[i][:max_len] = tokenized_inputs[i][0][:max_len]
 
 
     # Test id to text
